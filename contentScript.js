@@ -8,16 +8,6 @@ chrome.runtime.onMessage.addListener(
 );
 
 
-/// BELOW CODE WORKS, USE AS TEMPLATE 
-/*
-chrome.runtime.onMessage.addListener(
-  function(request, sender, sendResponse) {
-    sendResponse({farewell: "goodbye"});
-  }
-);
-*/
-
-
 /// PARSER CODE
 
 function get0() {
@@ -45,8 +35,8 @@ function get0() {
       article0.requestStatusText = chicagoRequest.statusText;
     }
   getReferences();
-  getCitations();
-  getReferenceCSV(referenceList);
+  // getCitations();
+   getReferenceCSV(referenceList);
   // makeNodeList();
   // makeEdgeList();
   };
@@ -74,46 +64,31 @@ function getReferences() {
       reference.UUID = generateUUID();
       reference.relationship = "Referenced by " + JSON.stringify(article0).replace(/\"/g, '"');
       
-      // FOR EVERY OBJ, APPEND AMBIGUOUS TEXT
-      try {      
-        reference.ambiguousText = liElement.innerHTML.replace(/<[^>]*>/g, "").replace(/\"/g, '"');
+      // FOR EVERY OBJ, APPEND AMBIGUOUS TEXT      
+      reference.ambiguousText = liElement.innerHTML.replace(/<[^>]*>/g, "").replace(/\"/g, '"');
         
         // IF HREF AVAILABLE, APPEND
-        if (liElement.querySelector('[href]') !== null) {
-          let linksString;
-          // GET ALL LINKS
-          linksARRAY = liElement.querySelectorAll('[href]');
-
-          for (const link of linksARRAY) {
-            let hrefValue = link.getAttribute("href");
-            if (hrefValue.match (/\/stable+.*/g)) {
-              hrefValue = "https://www.jstor.org" + hrefValue};
-            linksString += hrefValue +"; ";
-          } 
-          reference.Links = linksString || "";
-        }
+        (liElement.querySelector('[href]') === null) ? null : 
+          reference.Links = Object.values(Array.from(liElement.querySelectorAll('[href]'), Node => (Node.getAttribute("href").match(/\/stable+.*/g) ? "https://www.jstor.org" + Node.getAttribute("href") : Node.getAttribute("href")))).join(";");        
 
         // IF SECTION AVAILABLE, APPEND
-        if (liElement.closest("section") !== null) {
-          reference.Heading = liElement.closest("section").querySelector("h2").textContent;
-        }
+        (liElement.closest("section") === null) ? null : reference.Heading = liElement.closest("section").querySelector("h2").textContent;
         
         // IF <mfe-content-details-pharos-heading> AVAILABLE, APPEND
-        if (liElement.closest("ul.reference-list").parentElement.querySelector(".reference-block-title") !== null) {
-          reference.Subheading = liElement.closest("ul.reference-list").parentElement.querySelector(".reference-block-title").textContent;
-        }}
-      catch (error) {
-        reference.messageToUser = "I am unable to parse this <li> element. Please double-check manually.";
-        reference.entireElement = liElement.innerHTML;
-        reference.entireElementText = liElement.innerHTML.replace(/<[^>]*>/g, "");
-        reference.error = error.toString();
-      }
-
+        // try to find .reference-block-title
+        let SubheadingDOM = liElement;
+        while ((SubheadingDOM !== liElement.closest(".accordion__body")) && (SubheadingDOM.querySelector(".reference-block-title") === null)) {
+          SubheadingDOM = SubheadingDOM.parentElement;} // loop breaks when reached closes .according__body or found .reference-block-title
+        
+        // append Subheading to reference obj.
+        (SubheadingDOM.querySelector(".reference-block-title") === null) ? null : reference.Subheading = SubheadingDOM.querySelector(".reference-block-title").textContent;
+        
       // ADD OBJ TO REFERENCE LIST
       referenceList.push(reference);
-      }
+      //}
     }
   }
+}
 
 
 
@@ -214,7 +189,7 @@ function getReferenceCSV(referenceList) {
       csvData += ("\n");
   }
   
-  /*
+  
   // DOWNLOAD CSV
   // Create a blob object from the CSV data.
   const blob = new Blob([csvData], {type: 'text/csv'});
@@ -224,7 +199,7 @@ function getReferenceCSV(referenceList) {
 
   // Download the file automatically.
   window.open(url, 'Download', '_blank');
-  */
-} 
+}
+  
 
 get0();
