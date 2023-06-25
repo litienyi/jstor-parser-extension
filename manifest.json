@@ -1,0 +1,19 @@
+{
+    "name": "Test Extension",
+    "version": "0.1",
+    "description": "placeholder",
+    "manifest_version": 3,
+    "author": "Tien Yi Li",
+    "content_scripts": [
+        {
+            "matches": ["*://*/stable*"],
+            "js": ["contentScript.js"]
+        }],
+    "action": {
+        "default_title": "Click to send message"
+        },
+        "permissions": ["activeTab", "scripting", "tabs"],
+        "background": {
+        "service_worker": "background.js"
+        }
+  }
